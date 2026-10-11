@@ -58,6 +58,8 @@ const textLines = (m = model()) => {
   return l.length ? l : (m.defText || []);
 };
 const textOn = (m) => m.text && textLines(m).length > 0;
+// Modelos com textShape: o próprio texto é a peça (letreiro). Fonte guardada por modelo, com padrão defFont.
+const fontKey = (m = model()) => m.textShape ? state.shapeFonts?.[m.key] ?? m.defFont ?? state.text.font : state.text.font;
 
 // ---- Cena 3D -------------------------------------------------------------------
 const stage = $('stage');
@@ -161,13 +163,13 @@ async function rebuild(refit = false) {
   setStatus('Gerando…');
   try {
     const m = model(), P = PHOTOS[state.photo] || PHOTOS.polaroid;
-    const font = textOn(m) ? await loadFont(FONTS[state.text.font].url) : null;
-    const ctx = { P, gap: state.gap, s: state.scale / 100, hasText: !!font, o: optsOf(m) };
+    const font = textOn(m) ? await loadFont(FONTS[fontKey(m)].url) : null;
+    const ctx = { P, gap: state.gap, s: state.scale / 100, hasText: !!font, o: optsOf(m), font, lines: textLines(m) };
     freeAll();
     const out = m.build(ctx);
     let parts = out.parts;
     let sizeNote = '', plaque = null;
-    if (font && out.textBox) {
+    if (font && out.textBox && !m.textShape) {
       const tb = out.textBox, lines = textLines(), sec = textSection(font, lines, tb.w, tb.h);
       if (sec) {
         const b = csBounds(sec), n = lines.length;
@@ -285,15 +287,18 @@ function renderText() {
   $('textSec').hidden = !m.text;
   $('noTextSec').hidden = m.text;
   $('fonts').innerHTML = Object.entries(FONTS).map(([k, f]) =>
-    `<button data-f="${k}" class="${k === state.text.font ? 'on' : ''}" style="font-family:'pm-${k}'">${f.label}</button>`).join('');
+    `<button data-f="${k}" class="${k === fontKey(m) ? 'on' : ''}" style="font-family:'pm-${k}'">${f.label}</button>`).join('');
   document.querySelectorAll('#textMode button').forEach((b) => b.classList.toggle('on', b.dataset.mode === state.text.mode));
   $('modeHint').textContent = MODE_HINT[state.text.mode];
+  $('textMode').hidden = $('modeHint').hidden = !!m.textShape;
 }
 $('line1').oninput = (e) => { state.text.l1 = e.target.value; renderColors(); schedule(); };
 $('line2').oninput = (e) => { state.text.l2 = e.target.value; renderColors(); schedule(); };
 $('fonts').onclick = (e) => {
   const b = e.target.closest('button'); if (!b) return;
-  state.text.font = b.dataset.f; renderText(); schedule();
+  if (model().textShape) state.shapeFonts = { ...state.shapeFonts, [model().key]: b.dataset.f };
+  else state.text.font = b.dataset.f;
+  renderText(); schedule();
 };
 $('textMode').onclick = (e) => {
   const b = e.target.closest('button'); if (!b) return;
@@ -309,7 +314,7 @@ function swatchRow(role, current) {
 function renderColors() {
   const m = model();
   const roles = m.roles.map((r) => ({ id: r.id, label: r.label }));
-  if (textOn(m) && state.text.mode !== 'gravado') roles.push({ id: 'text', label: 'Texto' });
+  if (textOn(m) && !m.textShape && state.text.mode !== 'gravado') roles.push({ id: 'text', label: 'Texto' });
   $('colors').innerHTML = roles.map((r) => {
     const c = colorOf(m, r.id);
     return `<div class="role"><div class="role-name">${r.label}<span>${colorName(c)}</span></div>${swatchRow(r.id, c)}</div>`;
