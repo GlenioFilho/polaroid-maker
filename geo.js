@@ -76,6 +76,13 @@ export const sub = (a, b) => keep(a.subtract(b));
 export const move = (a, x, y, z) => keep(a.translate([x, y, z]));
 export const rotate = (a, rx, ry, rz) => keep(a.rotate([rx, ry, rz]));
 export const isEmpty = (a) => a.isEmpty();
+export const intersect = (a, b) => keep(a.intersect(b));
+/** Gira um perfil (x = raio, y = altura) em volta do eixo Z. Use a silhueta inteira (simétrica). */
+export const revolve = (p, n = 96) => keep(cs(p).revolve(n));
+/** Deforma cada vértice: f([x, y, z]) altera o ponto no lugar. */
+export const warp = (a, f) => keep(a.warp(f));
+/** Extrusão em Z com giro (graus) e escala no topo. */
+export const twist = (p, z0, h, deg, top = 1, n = 16) => keep(keep(cs(p).extrude(h, n, deg, top)).translate([0, 0, z0]));
 
 /** Malha para exibir/exportar: { pos: Float32Array, idx: Uint32Array } */
 export function meshOf(m) {

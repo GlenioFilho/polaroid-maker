@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { initGeo, freeAll, loadFont, textSection, csMove, csBounds, xz, xy, sub, union, meshOf,
   roundedRect, footprint, textureSolid } from './geo.js';
-import { MODELS } from './models.js';
+import { MODELS, COLLECTIONS } from './models.js';
 import { stl, threeMF, threeMFBambu, zip, download } from './export.js';
 
 // ---- Dados fixos -----------------------------------------------------------
@@ -53,8 +53,11 @@ const model = () => MODELS.find((m) => m.key === state.model) || MODELS[0];
 const optsOf = (m) => Object.fromEntries((m.opts || []).map((o) => [o.id, state.opts[m.key]?.[o.id] ?? o.def]));
 const colorOf = (m, role) => role === 'text' ? state.textColors[m.key] ?? m.textColor ?? '#f4f4f0'
   : state.colors[m.key]?.[role] ?? m.roles.find((r) => r.id === role).color;
-const textLines = () => [state.text.l1, state.text.l2].map((s) => s.trim()).filter(Boolean);
-const textOn = (m) => m.text && textLines().length > 0;
+const textLines = (m = model()) => {
+  const l = [state.text.l1, state.text.l2].map((s) => s.trim()).filter(Boolean);
+  return l.length ? l : (m.defText || []);
+};
+const textOn = (m) => m.text && textLines(m).length > 0;
 
 // ---- Cena 3D -------------------------------------------------------------------
 const stage = $('stage');
@@ -232,10 +235,21 @@ function setStatus(msg, err = false) { const s = $('status'); s.textContent = ms
 
 // ---- Painel ------------------------------------------------------------------------
 function renderModels() {
-  $('models').innerHTML = MODELS.map((m) =>
+  const col = model().col;
+  $('cols').innerHTML = COLLECTIONS.map((c) =>
+    `<button data-c="${c.key}" class="${c.key === col ? 'on' : ''}" ${c.soon ? 'disabled title="Em breve"' : ''}>${c.label}${c.soon ? ' <small>em breve</small>' : ''}</button>`).join('');
+  $('models').innerHTML = MODELS.filter((m) => m.col === col).map((m) =>
     `<button data-k="${m.key}" class="${m.key === state.model ? 'on' : ''}"><span class="e">${m.emoji}</span>${m.name}</button>`).join('');
   $('modelDesc').textContent = model().desc;
 }
+$('cols').onclick = (e) => {
+  const b = e.target.closest('button'); if (!b || b.disabled) return;
+  const c = b.dataset.c; if (c === model().col) return;
+  (state.lastByCol ||= {})[model().col] = state.model;
+  state.model = state.lastByCol[c] || MODELS.find((m) => m.col === c).key;
+  renderAll();
+  schedule(true);
+};
 $('models').onclick = (e) => {
   const b = e.target.closest('button'); if (!b) return;
   state.model = b.dataset.k;
@@ -245,10 +259,19 @@ $('models').onclick = (e) => {
 
 function renderOpts() {
   const m = model(), o = optsOf(m);
-  $('modelOpts').innerHTML = (m.opts || []).map((d) =>
-    `<label class="row">${d.label} <output>${o[d.id]}${d.unit}</output>
+  $('modelOpts').innerHTML = (m.opts || []).map((d) => d.choices
+    ? `<div class="row">${d.label}</div><div class="seg opt-seg">${d.choices.map(([v, l]) =>
+      `<button data-opt="${d.id}" data-v="${v}" class="${o[d.id] === v ? 'on' : ''}">${l}</button>`).join('')}</div>`
+    : `<label class="row">${d.label} <output>${o[d.id]}${d.unit}</output>
       <input type="range" data-opt="${d.id}" min="${d.min}" max="${d.max}" step="${d.step}" value="${o[d.id]}"></label>`).join('');
 }
+$('modelOpts').onclick = (e) => {
+  const b = e.target.closest('button[data-v]'); if (!b) return;
+  const m = model();
+  (state.opts[m.key] ||= {})[b.dataset.opt] = b.dataset.v;
+  renderOpts();
+  schedule();
+};
 $('modelOpts').oninput = (e) => {
   const id = e.target.dataset.opt; if (!id) return;
   const m = model(), d = m.opts.find((x) => x.id === id);
@@ -308,7 +331,7 @@ function renderFilaments() {
     `<div><b>${i + 1}</b><i style="background:${g.color}"></i>${colorName(g.color)} <span class="hint" style="margin:0">— ${g.name}</span></div>`).join('')
     + (n > 4 ? '<div class="warn">Mais de 4 cores: o AMS comum tem 4 slots.</div>' : '');
   const flat = model().key === 'moldura';
-  $('printHint').innerHTML = (flat ? 'Imprima <b>deitada</b>, como aparece aqui.' : 'Imprima <b>em pé</b>, como aparece aqui. Não precisa de suporte.')
+  $('printHint').innerHTML = (model().printHint || (flat ? 'Imprima <b>deitada</b>, como aparece aqui.' : 'Imprima <b>em pé</b>, como aparece aqui. Não precisa de suporte.'))
     + (n > 1 ? ` No fatiador, o filamento ${lastGroups.map((g, i) => `${i + 1} = ${colorName(g.color)}`).join(', ')}.` : '')
     + ' O 3MF abre no Bambu Studio já com uma parte por cor, ligada ao filamento certo — só escolha as cores dos filamentos 1, 2, 3… na lista à esquerda.'
     + ' Se não separar, use “STL por cor”: abra todos juntos e responda <b>Sim</b> quando ele perguntar se é um objeto com várias partes.';
@@ -325,8 +348,15 @@ $('texMode').onclick = (e) => {
   state.texture = b.dataset.tex; renderTexture(); schedule();
 };
 
+function renderPhotoUI() {
+  const np = !!model().noPhoto;
+  $('photoRows').hidden = np;
+  $('photoChips').hidden = np;
+  $('fitTitle').textContent = np ? 'Tamanho e formato' : 'Foto e encaixe';
+  $('line1').placeholder = model().defText ? `Nome (ex.: ${model().defText[0]})` : 'Nome (ex.: Ana & Leo)';
+}
 function renderAll() {
-  renderModels(); renderOpts(); renderText(); renderTexture(); renderColors();
+  renderPhotoUI(); renderModels(); renderOpts(); renderText(); renderTexture(); renderColors();
 }
 
 // Campos fixos
@@ -363,7 +393,7 @@ document.head.appendChild(Object.assign(document.createElement('style'), { textC
 // Downloads
 const fileBase = () => {
   const t = textLines()[0];
-  return 'suporte-' + model().key + (t ? '-' + t.normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase() : '');
+  return (model().col === 'polaroid' ? 'suporte-' : '') + model().key + (t ? '-' + t.normalize('NFD').replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase() : '');
 };
 $('dl3mf').onclick = () => {
   if (!lastGroups.length) return;

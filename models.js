@@ -10,6 +10,7 @@ import {
   cs, csUnion, csSub, csMove, csRotate, csRound, csBounds, csIntersect, rect, circle, ellipse, band, roundedRect,
   xz, yz, xy, box, union, sub, move, rotate,
 } from './geo.js';
+import { HALLOWEEN } from './halloween.js';
 
 const sc = (s) => (pts) => pts.map(([x, z]) => [x * s, z * s]);
 
@@ -35,7 +36,7 @@ function slotBlock({ W, D, H, ch, tilt, slot, yc, gap }) {
   return { m: sub(body, cut), zb, yb };
 }
 
-export const MODELS = [
+const POLAROID = [
   {
     key: 'classico', texture: true, name: 'Clássico', emoji: '▱',
     desc: 'Bloco com fenda inclinada e frente chanfrada. Texto na frente.',
@@ -572,3 +573,11 @@ export const MODELS = [
     },
   },
 ];
+
+// Coleções: os suportes de foto ficam em "Polaroid"; as outras vêm de arquivos próprios.
+export const COLLECTIONS = [
+  { key: 'polaroid', label: '📷 Polaroid' },
+  { key: 'halloween', label: '🎃 Halloween' },
+  { key: 'natal', label: '🎄 Natal', soon: true },
+];
+export const MODELS = [...POLAROID.map((m) => ({ col: 'polaroid', ...m })), ...HALLOWEEN];

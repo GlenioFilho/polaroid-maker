@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polaroid Maker · Fotos</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="fotos.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-180.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="theme-color" content="#c8553d">
+</head>
+<body>
+<div class="app">
+  <section class="view sheets-view" id="drop">
+    <div class="view-top">
+      <div class="brand">Polaroid <b>Maker</b> <a class="nav" href="./">🧊 Criador 3D</a> <span class="nav on">📷 Fotos</span></div>
+      <div class="status" id="status">Adicione fotos</div>
+    </div>
+    <div class="sheets" id="sheets">
+      <div class="empty" id="empty">
+        <div class="big">📷</div>
+        <p><b>Arraste as fotos do cliente para cá</b><br>ou clique em “Adicionar fotos”. Também dá para colar (Ctrl+V).</p>
+        <label class="primary-lg">Adicionar fotos<input type="file" id="files" accept="image/*" multiple hidden></label>
+      </div>
+    </div>
+  </section>
+
+  <aside class="panel">
+    <div class="sec">
+      <h2>Formato</h2>
+      <label class="row">Tamanho da foto
+        <select id="format"></select>
+      </label>
+      <p class="hint" id="perPage"></p>
+    </div>
+
+    <div class="sec">
+      <h2>Fotos <span id="count"></span></h2>
+      <label class="add-btn">+ Adicionar fotos<input type="file" id="files2" accept="image/*" multiple hidden></label>
+      <div id="list" class="list"></div>
+      <p class="hint">Arraste dentro da foto para enquadrar. Use o zoom para aproximar.</p>
+    </div>
+
+    <div class="sec">
+      <h2>Legenda</h2>
+      <div class="fonts" id="fonts"></div>
+      <div class="role"><div class="role-name">Cor do texto</div><div class="swatches" id="capColors"></div></div>
+      <label class="row">Legenda para todas
+        <input type="text" id="capAll" maxlength="40" placeholder="Ex.: Ana & Leo · 2026">
+      </label>
+      <button class="ghost" id="capApply">Aplicar em todas as fotos</button>
+    </div>
+
+    <div class="sec">
+      <h2>Acabamento</h2>
+      <div class="seg" id="filter">
+        <button data-f="none">Natural</button>
+        <button data-f="vintage">Vintage</button>
+        <button data-f="pb">Preto e branco</button>
+      </div>
+      <p class="hint" id="filterHint" style="margin-bottom:12px"></p>
+      <div class="seg" id="cuts">
+        <button data-c="marks">Marcas de corte</button>
+        <button data-c="outline">Contorno fino</button>
+        <button data-c="none">Nada</button>
+      </div>
+      <p class="hint" id="cutHint"></p>
+    </div>
+
+    <div class="sec">
+      <h2>Imprimir</h2>
+      <button class="primary" id="pdf">Baixar PDF para imprimir (A4)</button>
+      <div class="dl-row two">
+        <button id="print">Imprimir direto</button>
+        <button id="clear">Limpar tudo</button>
+      </div>
+      <p class="hint">Na impressora: papel <b>A4 fotográfico</b>, qualidade <b>Alta</b> e tamanho <b>Real / 100%</b>
+        (nunca “Ajustar à página”, senão as fotos encolhem e não cabem certinho no suporte).</p>
+    </div>
+  </aside>
+</div>
+<div id="printArea" class="print-area"></div>
+<script type="module" src="fotos.js"></script>
+</body>
+</html>

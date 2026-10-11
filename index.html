@@ -21,12 +21,12 @@
   <section class="view">
     <div id="stage"></div>
     <div class="view-top">
-      <div class="brand">Polaroid <b>Maker</b></div>
+      <div class="brand">Polaroid <b>Maker</b> <span class="nav on">🧊 Criador 3D</span> <a class="nav" href="fotos.html">📷 Fotos</a></div>
       <div class="status" id="status">Carregando…</div>
     </div>
     <div class="view-bottom">
       <div class="dims" id="dims"></div>
-      <div class="view-actions">
+      <div class="view-actions" id="photoChips">
         <label class="chip"><input type="checkbox" id="showPhoto" checked> Foto</label>
         <label class="chip">📷 Minha foto<input type="file" id="myPhoto" accept="image/*" hidden></label>
       </div>
@@ -35,20 +35,24 @@
 
   <aside class="panel">
     <div class="sec">
+      <h2>Coleção</h2>
+      <div class="cols" id="cols"></div>
       <h2>Modelo</h2>
       <div class="models" id="models"></div>
       <p class="hint" id="modelDesc"></p>
     </div>
 
     <div class="sec">
-      <h2>Foto e encaixe</h2>
+      <h2 id="fitTitle">Foto e encaixe</h2>
+      <div id="photoRows">
       <label class="row">Tamanho da foto
         <select id="photoSize"></select>
       </label>
       <label class="row">Folga da fenda <output id="gapOut"></output>
         <input type="range" id="gap" min="1.2" max="2.4" step="0.1">
       </label>
-      <label class="row">Tamanho do suporte <output id="scaleOut"></output>
+      </div>
+      <label class="row">Tamanho <output id="scaleOut"></output>
         <input type="range" id="scale" min="80" max="130" step="5">
       </label>
       <div id="modelOpts"></div>
