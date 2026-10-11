@@ -84,6 +84,9 @@ export const warp = (a, f) => keep(a.warp(f));
 /** Extrusão em Z com giro (graus) e escala no topo. */
 export const twist = (p, z0, h, deg, top = 1, n = 16) => keep(keep(cs(p).extrude(h, n, deg, top)).translate([0, 0, z0]));
 
+/** Sólido a partir de uma função de distância f([x, y, z]) (positiva dentro), na caixa min..max. */
+export const levelSet = (f, min, max, edge = 1) => keep(W.Manifold.levelSet(f, { min, max }, edge));
+
 /** Malha para exibir/exportar: { pos: Float32Array, idx: Uint32Array } */
 export function meshOf(m) {
   const g = m.getMesh();
