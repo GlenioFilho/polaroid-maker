@@ -366,7 +366,10 @@ export const CHRISTMAS = [
       { id: 'deco', label: 'Tree, star & bauble', color: '#d23c3c' },
     ],
     text: true, textShape: true, defFont: 'lobster', defText: ['Merry', 'Christmas'],
-    opts: [{ id: 'thick', label: 'Thickness', min: 6, max: 15, step: 1, def: 10, unit: ' mm' }],
+    opts: [
+      { id: 'width', label: 'Width', min: 120, max: 250, step: 2, def: 166, unit: ' mm' },
+      { id: 'thick', label: 'Thickness', min: 6, max: 20, step: 1, def: 15, unit: ' mm' },
+    ],
     printHint: 'Print <b>standing up</b>, exactly as shown. No supports needed. For a single colour, pick the same colour for both parts.',
     build({ s, o, font, lines }) {
       if (!font) throw new Error('font not loaded');
@@ -407,8 +410,10 @@ export const CHRISTMAS = [
       const deco = csUnion([tree, star, ball]);
       let sec = csUnion([...letters, strip, string, deco]);
       sec = connectPieces(sec, 2.2 * s);
-      const decoM = xz(csOffset(deco, -0.01), 0, T);
-      const all = xz(sec, 0, T);
+      // escala tudo para a largura escolhida (o tamanho geral ainda multiplica)
+      const bs = csBounds(sec), k = o.width * s / (bs.max[0] - bs.min[0]);
+      const decoM = xz(csScale(csOffset(deco, -0.01), k), 0, T);
+      const all = xz(csScale(sec, k), 0, T);
       return { parts: [{ m: sub(all, decoM), role: 'letters' }, { m: decoM, role: 'deco' }], photos: [] };
     },
   },
