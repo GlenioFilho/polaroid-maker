@@ -1,6 +1,6 @@
 // Coleção Home: decoração para o ano todo, vendida na loja da Europa (textos em inglês).
 // Mesmas convenções de models.js: mm, Z para cima, frente olha para -Y.
-import { csSub, csMove, csScale, csOffset, csBounds, textSection, wordSection, xz, union, sub } from './geo.js';
+import { csMove, csScale, csOffset, csBounds, textSection, wordSection, xz, sub } from './geo.js';
 
 export const HOME = [
   {
@@ -12,7 +12,7 @@ export const HOME = [
       { id: 'height', label: 'Letter height', min: 40, max: 100, step: 5, def: 60, unit: ' mm' },
       { id: 'depth', label: 'Depth', min: 12, max: 35, step: 1, def: 22, unit: ' mm' },
     ],
-    printHint: 'Print <b>lying on its back</b> (script side up). No supports needed. Turn it in the slicer if it opens standing.',
+    printHint: 'Print <b>lying on its back</b> (script side up). Where the script crosses a gap between letters, use <b>tree supports on build plate only</b>.',
     build({ s, o, font, blockFont, lines }) {
       if (!font || !blockFont) throw new Error('font not loaded');
       const H = o.height * s, D = o.depth * s, R = 2.4;   // R = relevo da frase
@@ -29,9 +29,8 @@ export const HOME = [
       let sc = csOffset(textSection(font, [phrase], W * 0.72, Hb * 0.4), 0.9);
       const sb = csBounds(sc);
       sc = csMove(sc, W * 0.6 - (sb.min[0] + sb.max[0]) / 2, Hb * 0.4 - (sb.min[1] + sb.max[1]) / 2);
-      // onde a frase passa por cima de um vão, ela desce até o fundo (imprime deitado sem ponte)
-      const out = csSub(sc, block);
-      const scriptM = out.isEmpty() ? xz(sc, -R, 0) : union([xz(sc, -R, 0), xz(out, -0.01, D)]);
+      // frase só na superfície da frente (encaixa 0,4 mm na palavra para as cores grudarem)
+      const scriptM = xz(sc, -R, 0.4);
       const parts = [{ m: sub(blockM, scriptM), role: 'block' }, { m: scriptM, role: 'script' }];
       return { parts, photos: [] };
     },
