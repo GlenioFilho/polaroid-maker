@@ -12,6 +12,7 @@ import {
 } from './geo.js';
 import { HALLOWEEN } from './halloween.js';
 import { CHRISTMAS } from './christmas.js';
+import { HOME } from './home.js';
 
 const sc = (s) => (pts) => pts.map(([x, z]) => [x * s, z * s]);
 
@@ -580,5 +581,6 @@ export const COLLECTIONS = [
   { key: 'polaroid', label: '📷 Polaroid' },
   { key: 'halloween', label: '🎃 Halloween' },
   { key: 'natal', label: '🎄 Christmas' },
+  { key: 'home', label: '🏠 Home' },
 ];
-export const MODELS = [...POLAROID.map((m) => ({ col: 'polaroid', ...m })), ...HALLOWEEN, ...CHRISTMAS];
+export const MODELS = [...POLAROID.map((m) => ({ col: 'polaroid', ...m })), ...HALLOWEEN, ...CHRISTMAS, ...HOME];

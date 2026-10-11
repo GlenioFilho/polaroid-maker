@@ -21,6 +21,7 @@ const FONTS = {
   lobster: { label: 'Lobster', url: FS + 'lobster@5/files/lobster-latin-400-normal.woff' },
   bebas: { label: 'Bebas Neue', url: FS + 'bebas-neue@5/files/bebas-neue-latin-400-normal.woff' },
   marker: { label: 'Marker', url: FS + 'permanent-marker@5/files/permanent-marker-latin-400-normal.woff' },
+  archivo: { label: 'Archivo Black', url: FS + 'archivo-black@5/files/archivo-black-latin-400-normal.woff' },
 };
 const PALETTE = [
   ['Branco', '#f4f4f0'], ['Preto', '#1c1c1e'], ['Cinza', '#7d8a99'], ['Prata', '#c0c4c8'], ['Bege', '#e8dcc4'],
@@ -164,7 +165,8 @@ async function rebuild(refit = false) {
   try {
     const m = model(), P = PHOTOS[state.photo] || PHOTOS.polaroid;
     const font = textOn(m) ? await loadFont(FONTS[fontKey(m)].url) : null;
-    const ctx = { P, gap: state.gap, s: state.scale / 100, hasText: !!font, o: optsOf(m), font, lines: textLines(m) };
+    const ctx = { P, gap: state.gap, s: state.scale / 100, hasText: !!font, o: optsOf(m), font, lines: textLines(m),
+      blockFont: m.blockFont ? await loadFont(FONTS[m.blockFont].url) : null };
     freeAll();
     const out = m.build(ctx);
     let parts = out.parts;

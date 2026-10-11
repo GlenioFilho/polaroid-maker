@@ -164,6 +164,36 @@ export function textSection(font, lines, w, h) {
   return csScale(csMove(all, -(b.min[0] + b.max[0]) / 2, -(b.min[1] + b.max[1]) / 2), k);
 }
 
+/**
+ * Uma palavra como seção 2D com as letras encostadas: cada letra começa onde a anterior termina,
+ * menos "overlap" (fração da altura); se ainda não encostar (letras inclinadas como A e Y), aproxima mais.
+ * Base em y = 0, altura das letras = h.
+ */
+export function wordSection(font, text, h, overlap = 0.05) {
+  const size = 10;
+  const glyphs = [];
+  for (const g of font.stringToGlyphs(text)) {
+    const poly = contoursOf(g.getPath(0, 0, size).commands);
+    if (poly.length) glyphs.push(cs(poly));
+  }
+  if (!glyphs.length) return null;
+  const capH = Math.max(...glyphs.map((g) => { const b = g.bounds(); return b.max[1] - b.min[1]; }));
+  let all = null, right = 0;
+  for (const g of glyphs) {
+    const b = g.bounds();
+    if (!all) { all = csMove(g, -b.min[0], 0); right = b.max[0] - b.min[0]; continue; }
+    for (let k = 1; k <= 8; k++) {
+      const x = right - overlap * capH * k - b.min[0];
+      const u = csUnion([all, csMove(g, x, 0)]);
+      const n = u.decompose(), ok = n.length <= 1;
+      n.forEach((p) => p.delete());
+      if (ok || k === 8) { all = u; right = Math.max(right, x + b.max[0]); break; }
+    }
+  }
+  const b = all.bounds();
+  return csScale(csMove(all, -b.min[0], -b.min[1]), h / (b.max[1] - b.min[1]));
+}
+
 // ---- Textura (crochê / tricô) ------------------------------------------------
 export const csOffset = (a, d) => keep(cs(a).offset(d, 'Round', 2, 24));
 export const csIntersect = (a, b) => keep(cs(a).intersect(cs(b)));
